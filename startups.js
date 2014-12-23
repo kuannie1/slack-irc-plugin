@@ -6,11 +6,11 @@ var config = {
     server: 'irc.freenode.com',
     nick: '_slack_bot',
     username: 'mslackbot612',
-    token: '',
+    token: '', //no use
     income_url: '',
     outcome_token: '',
     channels: {
-        '#startups.tw': '#irc_startuptw'
+        '#g0v.tw': '#g0v_tw'
     },
     users: {
     },
@@ -22,22 +22,23 @@ var config = {
 var slackbot = new slackbot.Bot(config);
 slackbot.listen();
 
-
 var server = http.createServer(function (req, res) {
   if (req.method == 'POST') {
     req.on('data', function(data) {
       var payload = querystring.parse(data.toString());
-      if (payload.token == '' && payload.user_name != 'slackbot') {
-        //console.log('valid post from slack!');
-        var ircMsg = "" + payload.user_name + "_: " + payload.text;
-        //console.log("attempt to post to irc: ", ircMsg);
-        slackbot.speak('#startups.tw', ircMsg);
+
+      if (payload.token == config.outcome_token && payload.user_name != 'slackbot') {
+        var ircMsg = "<" + payload.user_name + "> " + payload.text;
+        var channel = Object.keys(config.channels)[0];
+
+        slackbot.speak(channel, ircMsg);
+        res.end('done');
       }
+      res.end('request should not be from slackbot or must have matched token.')
     });
   } else {
-    console.log('recieved request (not post)');
+    res.end('recieved request (not post)');
   }
-  res.end('done');
 });
 
 server.listen(5555);
