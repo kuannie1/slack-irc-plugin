@@ -6,9 +6,9 @@ var config = {
     server: 'irc.freenode.com',
     nick: '_slack_bot',
     username: 'mslackbot612',
-    token: '', // get from https://api.slack.com/web#basics
-    income_url: '',
-    outcome_token: '',
+    token: proccess.env.TOKEN ||'', // get from https://api.slack.com/web#basics
+    income_url: proccess.env.INCOME_URL || '',
+    outcome_token: proccess.env.OUTCOME_TOKEN || '',
     channels: {
         '#g0v.tw': '#g0v_tw'
     },
@@ -20,25 +20,32 @@ var config = {
 };
 var slackUsers = {};
 var slackChannels = {};
-
-request.get({
-    url: 'https://slack.com/api/users.list?token=' + config.token
-}, function (error, response, body) {
-  var res = JSON.parse(body);
-  res.members.map(function (member) {
-    slackUsers[member.id] = member.name;
+function updateLists () {
+  request.get({
+      url: 'https://slack.com/api/users.list?token=' + config.token
+  }, function (error, response, body) {
+    var res = JSON.parse(body);
+    console.log('updated:', new Date());
+    res.members.map(function (member) {
+      slackUsers[member.id] = member.name;
+    });
   });
-});
 
-request.get({
-    url: 'https://slack.com/api/channels.list?token=' + config.token
-}, function (error, response, body) {
-  var res = JSON.parse(body);
-  res.channels.map(function (channel) {
-    slackChannels[channel.id] = channel.name;
+  request.get({
+      url: 'https://slack.com/api/channels.list?token=' + config.token
+  }, function (error, response, body) {
+    var res = JSON.parse(body);
+    res.channels.map(function (channel) {
+      slackChannels[channel.id] = channel.name;
+    });
   });
-});
 
+  setTimeout(function () {
+    updateLists()
+  }, 10 * 60 * 1000);
+}
+
+updateLists();
 var slackbot = new slackbot.Bot(config);
 slackbot.listen();
 
@@ -57,6 +64,7 @@ var server = http.createServer(function (req, res) {
             var member_id = matched.match(/@(U\w{8})/)[1];
             return '@' + slackUsers[member_id];
         });
+        ircMsg = ircMsg.replace(/&amp;/g, '&');
         slackbot.speak(channel, ircMsg);
         res.end('done');
       }
