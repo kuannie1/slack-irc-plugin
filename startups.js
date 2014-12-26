@@ -64,7 +64,7 @@ var server = http.createServer(function (req, res) {
             var member_id = matched.match(/@(U\w{8})/)[1];
             return '@' + slackUsers[member_id];
         });
-        ircMsg = ircMsg.replace(/<http\:.+>/, function (matched) {
+        ircMsg = ircMsg.replace(/<https?\:\/\/.+>/, function (matched) {
           return matched.replace('<','').replace('>','').replace(/&amp;/g, '&');
         });
         slackbot.speak(channel, ircMsg);
