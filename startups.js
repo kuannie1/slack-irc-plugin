@@ -6,9 +6,9 @@ var config = {
     server: 'irc.freenode.com',
     nick: '_slack_bot',
     username: 'mslackbot612',
-    token: proccess.env.TOKEN ||'', // get from https://api.slack.com/web#basics
-    income_url: proccess.env.INCOME_URL || '',
-    outcome_token: proccess.env.OUTCOME_TOKEN || '',
+    token: process.env.TOKEN ||'', // get from https://api.slack.com/web#basics
+    income_url: process.env.INCOME_URL || '',
+    outcome_token: process.env.OUTCOME_TOKEN || '',
     channels: {
         '#g0v.tw': '#g0v_tw'
     },
@@ -64,7 +64,9 @@ var server = http.createServer(function (req, res) {
             var member_id = matched.match(/@(U\w{8})/)[1];
             return '@' + slackUsers[member_id];
         });
-        ircMsg = ircMsg.replace(/&amp;/g, '&');
+        ircMsg = ircMsg.replace(/<http\:.+>/, function (matched) {
+          return matched.replace(/(<|>)/,'').replace(/&amp;/g, '&');
+        });
         slackbot.speak(channel, ircMsg);
         res.end('done');
       }
