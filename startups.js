@@ -56,17 +56,21 @@ var server = http.createServer(function (req, res) {
       if (payload.token == config.outcome_token && payload.user_name != 'slackbot') {
         var ircMsg = "<" + payload.user_name + "> " + payload.text;
         var channel = Object.keys(config.channels)[0];
+        /*
+         * Channel ID -> Channel Name
+         * Member ID -> Member Name
+         * decoed URL and remove <, >
+         */
         ircMsg = ircMsg.replace(/<#C\w{8}>/g, function (matched) {
-            var channel_id = matched.match(/#(C\w{8})/)[1];
-            return '#' + slackChannels[channel_id];
-        });
-        ircMsg = ircMsg.replace(/<@U\w{8}>/g, function (matched) {
-            var member_id = matched.match(/@(U\w{8})/)[1];
-            return '@' + slackUsers[member_id];
-        });
-        ircMsg = ircMsg.replace(/<https?\:\/\/.+>/, function (matched) {
+          var channel_id = matched.match(/#(C\w{8})/)[1];
+          return '#' + slackChannels[channel_id];
+        }).replace(/<@U\w{8}>/g, function (matched) {
+          var member_id = matched.match(/@(U\w{8})/)[1];
+          return '@' + slackUsers[member_id];
+        }).replace(/<https?\:\/\/.+>/g, function (matched) {
           return matched.replace('<','').replace('>','').replace(/&amp;/g, '&');
-        });
+        }).replace(/&lt;/g,'<').replace(/&gt;/g, '>');
+
         slackbot.speak(channel, ircMsg);
         res.end('done');
       }
