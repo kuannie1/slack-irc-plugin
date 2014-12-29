@@ -4,8 +4,8 @@ var querystring = require('querystring');
 var request = require('request');
 var config = {
     server: 'irc.freenode.com',
-    nick: '_slack_bot',
-    username: 'mslackbot612',
+    nick: 'slackbot',
+    username: 'g0vslackbot',
     token: process.env.TOKEN ||'', // get from https://api.slack.com/web#basics
     income_url: process.env.INCOME_URL || '',
     outcome_token: process.env.OUTCOME_TOKEN || '',
