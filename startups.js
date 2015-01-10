@@ -10,7 +10,7 @@ var config = {
     income_url: process.env.INCOME_URL || '',
     outcome_token: process.env.OUTCOME_TOKEN || '',
     channels: {
-        '#g0v.tw': '#g0v_tw'
+        '#g0v.tw': '#general'
     },
     users: {
     },
