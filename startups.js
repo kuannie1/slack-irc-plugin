@@ -56,6 +56,9 @@ var server = http.createServer(function (req, res) {
       if (payload.token == config.outcome_token && payload.user_name != 'slackbot') {
         var ircMsg = "<" + payload.user_name + "> " + payload.text;
         var channel = Object.keys(config.channels)[0];
+        //  "[-a-zA-Z0-9@:%_\+\.~#?&//=]{2,256}.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?"
+        var url = "[-a-zA-Z0-9@:%_\\+\.~#?&//=]{2,256}\\.[a-z]{2,4}\\b(\\/[-a-zA-Z0-9@:%_\\+.~#?&//=]*)?";
+        var re = new RegExp("<(" + url + ")\\|" + url + ">","gi");
         /*
          * Channel ID -> Channel Name
          * Member ID -> Member Name
@@ -67,7 +70,7 @@ var server = http.createServer(function (req, res) {
         }).replace(/<@U\w{8}>/g, function (matched) {
           var member_id = matched.match(/@(U\w{8})/)[1];
           return '@' + slackUsers[member_id];
-        }).replace(/<(https?\:\/\/.+)\|.+>/g, function (matched, link) {
+        }).replace(re, function (matched, link) {
           return link.replace(/&amp;/g, '&');
         }).replace(/&lt;/g,'<').replace(/&gt;/g, '>');
 
