@@ -34,10 +34,20 @@ function updateLists () {
   request.get({
       url: 'https://slack.com/api/channels.list?token=' + config.token
   }, function (error, response, body) {
-    var res = JSON.parse(body);
-    res.channels.map(function (channel) {
-      slackChannels[channel.id] = channel.name;
-    });
+    var res;
+
+    try {
+      res = JSON.parse(body);
+    } catch (e) {
+      console.log('failed to parse:', body);
+      console.error(e);
+    }
+
+    if (res && res.channels) {
+      res.channels.map(function (channel) {
+        slackChannels[channel.id] = channel.name;
+      });
+    }
   });
 
   setTimeout(function () {
