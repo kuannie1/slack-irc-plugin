@@ -24,11 +24,21 @@ function updateLists () {
   request.get({
       url: 'https://slack.com/api/users.list?token=' + config.token
   }, function (error, response, body) {
-    var res = JSON.parse(body);
-    console.log('updated:', new Date());
-    res.members.map(function (member) {
-      slackUsers[member.id] = member.name;
-    });
+    var res;
+
+    try {
+      res = JSON.parse(body);
+    } catch (e) {
+      console.log('failed to parse the member list:', body);
+      console.error(e);
+    }
+
+    if (res && res.members) {
+      console.log('members updated:', new Date());
+      res.members.map(function (member) {
+        slackUsers[member.id] = member.name;
+      });
+    }
   });
 
   request.get({
@@ -39,11 +49,12 @@ function updateLists () {
     try {
       res = JSON.parse(body);
     } catch (e) {
-      console.log('failed to parse:', body);
+      console.log('failed to parse the channel list:', body);
       console.error(e);
     }
 
     if (res && res.channels) {
+      console.log('channels updated:', new Date());
       res.channels.map(function (channel) {
         slackChannels[channel.id] = channel.name;
       });
