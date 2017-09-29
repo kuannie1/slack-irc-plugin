@@ -96,7 +96,7 @@ var server = http.createServer(function (req, res) {
           .replace(/&amp;/g,'&')
           .replace(/&lt;/g,'<')
           .replace(/&gt;/g, '>')
-          .replace(/<(https?:\/\/[-a-z0-9@:%_+.~#?&=\/]*)(?:\|([^>]*))?>/g, '$1');
+          .replace(/<(https:\/\/[-a-zA-Z0-9@:%_+.~#?&=\/]*)(?:\|([^>]*))?>/g, '$1');
 
         slackbot.speak(channel, ircMsg);
         res.end('done');
