@@ -1,7 +1,9 @@
 var slackbot = require('./lib/bot');
+var middlewares = require('./middlewares');
 var http = require('http');
 var querystring = require('querystring');
 var request = require('request');
+
 var config = {
     server: 'irc.freenode.com',
     nick: 'slackbot',
@@ -18,8 +20,10 @@ var config = {
     floodProtection: true,
     silent: false // keep the bot quiet
 };
+
 var slackUsers = {};
 var slackChannels = {};
+
 function updateLists () {
   request.get({
       url: 'https://slack.com/api/users.list?token=' + config.token
@@ -73,38 +77,25 @@ slackbot.listen();
 var server = http.createServer(function (req, res) {
   if (req.method == 'POST') {
     req.on('data', function(data) {
-      var payload = querystring.parse(data.toString());
-      if (payload.token == config.outcome_token && payload.user_name != 'slackbot') {
-        var ircMsg = "<" + payload.user_name + "> " + payload.text;
-        var channel = Object.keys(config.channels)[0];
-        console.log(channel, ircMsg);
-        //  "[-a-z0-9@:%_\+\.~#?&//=]{2,256}.[a-z]{2,4}\b\/[-a-z0-9@:%_\+.~#?&//=]*"
-        //var url = "[-a-z0-9@:%_\\+\.~#?&//=]{2,256}\\.[a-z]{2,4}\\b\\/[-a-z0-9@:%_\\+.~#?&//=]*";
-        //var re = new RegExp("<(" + url + ")>","gi");
-        /*
-         * Channel ID -> Channel Name
-         * Member ID -> Member Name
-         * decoed URL and remove <, >
-         */
-        ircMsg = ircMsg.replace(/<#C\w{8}>/g, function (matched) {
-          var channel_id = matched.match(/#(C\w{8})/)[1];
-          return '#' + slackChannels[channel_id];
-        }).replace(/<@U\w{8}>/g, function (matched) {
-          var member_id = matched.match(/@(U\w{8})/)[1];
-          return '@' + slackUsers[member_id];
-        })
-          .replace(/&amp;/g,'&')
-          .replace(/&lt;/g,'<')
-          .replace(/&gt;/g, '>')
-          // links
-          .replace(/<(https:\/\/[-a-zA-Z0-9@:%_+.~#?&=\/]*)(?:\|([^>]*))?>/g, '$1')
-          // channels
-          .replace(/<#\w+\|([-a-zA-Z0-9_]+)>/g, '#$1');
+      var k, m, msg, channel, payload;
 
-        slackbot.speak(channel, ircMsg);
-        res.end('done');
+      payload = querystring.parse(data.toString());
+      console.log('raw', payload);
+
+      for (k in middlewares) {
+        m = middlewares[k];
+        if (m.test(payload)) {
+          msg = m.parse(payload, slackChannels, slackUsers);
+          if (msg) {
+	    channel = Object.keys(config.channels)[0];
+            console.log('msg', channel, msg);
+            slackbot.speak(channel, msg);
+          }
+          break;
+        }
       }
-      res.end('request should not be from slackbot or must have matched token.')
+
+      res.end('done');
     });
   } else {
     res.end('recieved request (not post)');
