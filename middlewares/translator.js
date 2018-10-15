@@ -9,7 +9,7 @@ function test(payload) {
 }
 
 function parse(payload, channels, users) {
-  var user_name = payload.bot_name.replace(' (#general-en@g0v-tw):', '');
+  var user_name = payload.bot_name.replace(/ \(.*/, '');
   return '<' + user_name + '> ' + textFromSlack(payload.text, channels, users);
 }
 
